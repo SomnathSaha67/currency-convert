@@ -1,16 +1,20 @@
-import React, { useState } from "react";
+/**
+ * WHAT: This is the main screen of the application.
+ * WHY: It contains all the buttons, inputs, and logic for the currency tools.
+ * HOW: It uses 'React State' (useState) to remember what the user types and 
+ *      'Async Functions' to talk to the backend server.
+ */
+import { useState } from "react";
+import { currencyList } from "@/lib/currencies";
 
+// This is the address of our Backend server
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const currencyList = [
-  { code: "USD", label: "USD - US Dollar" },
-  { code: "EUR", label: "EUR - Euro" },
-  { code: "GBP", label: "GBP - British Pound" },
-  { code: "INR", label: "INR - Indian Rupee" },
-  { code: "JPY", label: "JPY - Japanese Yen" }
-];
-
 export default function ConverterApp() {
+  /** 
+   * STATE: Think of these as the 'memory' of the app. 
+   * When you type in a box, React saves it here. 
+   */
   const [amount, setAmount] = useState("100");
   const [from, setFrom] = useState("USD");
   const [to, setTo] = useState("INR");
@@ -27,6 +31,10 @@ export default function ConverterApp() {
 
   const [predictResult, setPredictResult] = useState("");
 
+  /**
+   * FUNCTION: convert()
+   * WHAT: Calculates the simple exchange rate (e.g., $1 = ₹83).
+   */
   async function convert() {
     const value = Number(amount);
     if (!value || value <= 0) {
@@ -56,10 +64,14 @@ export default function ConverterApp() {
     }
   }
 
+  /**
+   * FUNCTION: checkArbitrage()
+   * WHAT: Asks the backend to find 'money-making' conversion loops.
+   */
   async function checkArbitrage() {
     setArbResult("⏳ Checking...");
     try {
-      const response = await fetch(`${BACKEND_URL}/api/arbitrage`);
+      const response = await fetch(`${BACKEND_URL}/api/arbitrage?base=${from}&target=${to}`);
       const data = await response.json();
 
       if (data.count === 0) {
@@ -75,6 +87,10 @@ export default function ConverterApp() {
     }
   }
 
+  /**
+   * FUNCTION: loadHeatmap()
+   * WHAT: Loads colors representing how much currencies are 'bouncing' in price.
+   */
   async function loadHeatmap() {
     setHeatmapMsg("⏳ Loading heat map...");
     setHeatmap({});
@@ -88,6 +104,10 @@ export default function ConverterApp() {
     }
   }
 
+  /**
+   * FUNCTION: planBudget()
+   * WHAT: Tells you how much money you need for a trip and if today is a good day to buy.
+   */
   async function planBudget() {
     const budget = Number(tripBudget);
     const days = Number(tripDays);
@@ -136,6 +156,10 @@ export default function ConverterApp() {
     }
   }
 
+  /**
+   * FUNCTION: predict()
+   * WHAT: Asks the backend AI to guess the price for the next 7 days.
+   */
   async function predict() {
     setPredictResult("⏳ Predicting...");
     try {
@@ -154,16 +178,19 @@ export default function ConverterApp() {
     }
   }
 
+  // Logic to calculate colors for the Heatmap (Green = Stable, Red = Unstable)
   const heatmapEntries = Object.entries(heatmap);
   const maxVal = heatmapEntries.length ? Math.max(...heatmapEntries.map(([, v]) => v)) : 0;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 text-white">
+    <div className="w-full px-4 py-12 text-white relative z-10 h-screen overflow-y-auto">
+      {/* HEADER SECTION */}
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-semibold">💱 Smart Currency Converter</h2>
         <p className="text-zinc-400">Real-time conversion + ML insights</p>
       </div>
 
+      {/* MAIN CONVERTER SECTION */}
       <div className="grid gap-6 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
         <input
           className="rounded-lg border border-white/10 bg-white/5 px-4 py-3"
@@ -173,56 +200,64 @@ export default function ConverterApp() {
           placeholder="Enter amount"
         />
 
-        <select
-          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-        >
-          {currencyList.map((c) => (
-            <option key={c.code} value={c.code}>{c.label}</option>
-          ))}
-        </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <select
+            value={from}
+            className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white [&>option]:text-black"
+            onChange={(e) => setFrom(e.target.value)}
+          >
+            {currencyList.map((c) => (
+              <option key={c.code} value={c.code}>{c.label}</option>
+            ))}
+          </select>
 
-        <select
-          className="rounded-lg border border-white/10 bg-white/5 px-4 py-3"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-        >
-          {currencyList.map((c) => (
-            <option key={c.code} value={c.code}>{c.label}</option>
-          ))}
-        </select>
+          <select
+            value={to}
+            className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white [&>option]:text-black"
+            onChange={(e) => setTo(e.target.value)}
+          >
+            {currencyList.map((c) => (
+              <option key={c.code} value={c.code}>{c.label}</option>
+            ))}
+          </select>
+        </div>
 
         <button
-          className="rounded-lg bg-white text-zinc-950 py-3 font-semibold"
+          className="rounded-lg bg-white text-zinc-950 py-3 font-semibold hover:bg-zinc-200 transition"
           onClick={convert}
           disabled={loading}
         >
-          {loading ? "Converting..." : "Convert"}
+          {loading ? "Converting..." : "Convert Now"}
         </button>
 
-        <div className="rounded-lg bg-zinc-900/70 px-4 py-3">
+        <div className="rounded-lg bg-zinc-900/70 px-4 py-3 text-center text-lg font-medium">
           {result || "Result will appear here"}
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6">
+      {/* ADDITIONAL TOOLS (Grid of Cards) */}
+      <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+
+        {/* CARD 1: Arbitrage */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
           <h3 className="text-xl font-semibold mb-2">🔍 Arbitrage Detector</h3>
-          <button className="rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={checkArbitrage}>
-            Check Arbitrage
+          <p className="text-xs text-zinc-400 mb-4">Find 'free money' loops between currencies.</p>
+          <button className="w-full rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={checkArbitrage}>
+            Scan Markets
           </button>
-          <div className="mt-3 text-sm">{arbResult}</div>
+          <div className="mt-3 text-sm italic">{arbResult}</div>
         </div>
 
+        {/* CARD 2: Volatility Heatmap */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-          <h3 className="text-xl font-semibold mb-2">🌡️ Volatility Heat Map</h3>
-          <button className="rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={loadHeatmap}>
-            Load Heat Map
+          <h3 className="text-xl font-semibold mb-2">🌡️ Market Heat Map</h3>
+          <p className="text-xs text-zinc-400 mb-4">Green is calm, Red is moving fast.</p>
+          <button className="w-full rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={loadHeatmap}>
+            Refresh Rates
           </button>
           <div className="mt-3 text-sm">{heatmapMsg}</div>
 
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 gap-2">
             {heatmapEntries.map(([currency, value]) => {
               const intensity = maxVal === 0 ? 0 : value / maxVal;
               const r = Math.round(80 + 175 * intensity);
@@ -231,47 +266,50 @@ export default function ConverterApp() {
               return (
                 <div
                   key={currency}
-                  className="rounded-lg p-3 text-center font-semibold"
+                  className="rounded-lg p-2 text-center font-semibold"
                   style={{ backgroundColor: `rgb(${r}, ${g}, ${b})`, color: "#111" }}
                 >
-                  <div>{currency}</div>
-                  <div className="text-xs">{value}%</div>
+                  <div className="text-xs">{currency}</div>
+                  <div className="text-[10px] opacity-70">{value}%</div>
                 </div>
               );
             })}
           </div>
         </div>
 
+        {/* CARD 3: Travel Planner */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-          <h3 className="text-xl font-semibold mb-2">🧳 Travel Budget Planner</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <h3 className="text-xl font-semibold mb-2">🧳 Trip Budgeting</h3>
+          <div className="grid gap-3 mb-4">
             <input
-              className="rounded-lg border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm"
               type="number"
               value={tripBudget}
               onChange={(e) => setTripBudget(e.target.value)}
-              placeholder="Trip budget (target currency)"
+              placeholder="Total budget needed"
             />
             <input
-              className="rounded-lg border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm"
               type="number"
               value={tripDays}
               onChange={(e) => setTripDays(e.target.value)}
-              placeholder="Days until trip"
+              placeholder="Trip duration (days)"
             />
           </div>
-          <button className="mt-3 rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={planBudget}>
-            Plan Budget
+          <button className="w-full rounded-lg bg-white text-zinc-950 py-2 px-4 text-sm" onClick={planBudget}>
+            Calculate Costs
           </button>
-          <div className="mt-3 text-sm">{planResult}</div>
+          <div className="mt-3 text-xs leading-relaxed">{planResult}</div>
         </div>
 
+        {/* CARD 4: ML Prediction */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-          <h3 className="text-xl font-semibold mb-2">📈 7-Day Rate Prediction</h3>
-          <button className="rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={predict}>
-            Predict Next 7 Days
+          <h3 className="text-xl font-semibold mb-2">📈 AI Predictions</h3>
+          <p className="text-xs text-zinc-400 mb-4">Where will the price be in 7 days?</p>
+          <button className="w-full rounded-lg bg-white text-zinc-950 py-2 px-4" onClick={predict}>
+            Run AI Forecast
           </button>
-          <div className="mt-3 text-sm">{predictResult}</div>
+          <div className="mt-3 text-xs font-mono">{predictResult}</div>
         </div>
       </div>
     </div>
