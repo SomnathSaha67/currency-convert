@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Currency Converter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>💱 Smart Currency Converter</h1>
+        
+        <!-- Basic Conversion -->
+        <div class="conversion-box">
+            <input type="number" id="amount" placeholder="Enter amount" value="100">
+            
+            <select id="fromCurrency">
+                <option value="USD">USD - US Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="GBP">GBP - British Pound</option>
+                <option value="INR">INR - Indian Rupee</option>
+                <option value="JPY">JPY - Japanese Yen</option>
+            </select>
+            
+            <span class="arrow">→</span>
+            
+            <select id="toCurrency">
+                <option value="INR">INR - Indian Rupee</option>
+                <option value="USD">USD - US Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="GBP">GBP - British Pound</option>
+                <option value="JPY">JPY - Japanese Yen</option>
+            </select>
+            
+            <button id="convertBtn">Convert</button>
+            
+            <div id="result" class="result"></div>
+        </div>
+        
+        <!-- ML Features will go here -->
+        <div id="mlFeatures"></div>
+    </div>
+    
+    <script src="app.js"></script>
+    <script src="ml-features.js"></script>
+</body>
+</html>
